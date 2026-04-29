@@ -52,7 +52,7 @@ export async function fetchCreatives(
       `${BASE_URL}/${accountId}/insights?` +
         `level=ad&` +
         `fields=ad_id,ad_name,spend,impressions,clicks,cpc,cpm,purchase_roas,actions,` +
-        `video_3_sec_watched_actions,video_p95_watched_actions,video_thruplay_watched_actions&` +
+        `video_p95_watched_actions,video_thruplay_watched_actions&` +
         `date_preset=${datePreset}&` +
         `filtering=[{"field":"spend","operator":"GREATER_THAN","value":"${Math.max(0, minSpend - 1)}"}]&` +
         `sort=["spend_descending"]&` +
@@ -83,7 +83,7 @@ export async function fetchCreatives(
     const impressions = parseInt(insight.impressions || '0')
     const linkClicks = getActionValue(insight.actions, 'link_click')
     const purchases = getActionValue(insight.actions, 'purchase')
-    const video3s = getActionValue(insight.video_3_sec_watched_actions, 'video_view')
+    const video3s = getActionValue(insight.actions, 'video_view')
     const videoThruplay = getActionValue(insight.video_thruplay_watched_actions, 'video_view')
 
     const roas =
