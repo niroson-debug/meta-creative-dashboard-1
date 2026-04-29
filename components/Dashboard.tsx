@@ -5,6 +5,7 @@ import type { AdAccount, Creative } from '@/lib/meta'
 import Sidebar from './Sidebar'
 import FiltersBar from './FiltersBar'
 import CreativeCard from './CreativeCard'
+import CreativeModal from './CreativeModal'
 
 export default function Dashboard() {
   const [accounts, setAccounts] = useState<AdAccount[]>([])
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null)
 
   // Filters
   const [datePreset, setDatePreset] = useState('last_14d')
@@ -120,12 +122,25 @@ export default function Dashboard() {
           ) : (
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
               {creatives.map((creative) => (
-                <CreativeCard key={creative.id} creative={creative} currency={currency} />
+                <CreativeCard
+                  key={creative.id}
+                  creative={creative}
+                  currency={currency}
+                  onClick={() => setSelectedCreative(creative)}
+                />
               ))}
             </div>
           )}
         </main>
       </div>
+
+      {selectedCreative && (
+        <CreativeModal
+          creative={selectedCreative}
+          currency={currency}
+          onClose={() => setSelectedCreative(null)}
+        />
+      )}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import Image from 'next/image'
 interface Props {
   creative: Creative
   currency: string
+  onClick: () => void
 }
 
 function ScoreBar({ label, score }: { label: string; score: number | null }) {
@@ -60,7 +61,7 @@ function fmtDecimals(n: number, currency: string) {
   }).format(n)
 }
 
-export default function CreativeCard({ creative, currency }: Props) {
+export default function CreativeCard({ creative, currency, onClick }: Props) {
   const roasColor =
     creative.roas >= 3
       ? '#22c55e'
@@ -72,11 +73,12 @@ export default function CreativeCard({ creative, currency }: Props) {
 
   return (
     <div
-      className="rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:scale-[1.01]"
+      className="rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:scale-[1.01] cursor-pointer"
       style={{
         background: '#1a1230',
         border: '1px solid #2d1f50',
       }}
+      onClick={onClick}
     >
       {/* Thumbnail */}
       <div className="relative aspect-[4/3] w-full" style={{ background: '#0d0918' }}>
