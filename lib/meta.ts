@@ -58,7 +58,7 @@ export async function fetchCreatives(
   const [adsRes, insightsRes] = await Promise.all([
     fetch(
       `${BASE_URL}/${accountId}/ads?` +
-        `fields=id,name,creative{id,thumbnail_url,image_url,video_id,body,title,call_to_action_type,link_description}&` +
+        `fields=id,name,creative{id,thumbnail_url,image_url,video_id,body,title,call_to_action_type}&` +
         `filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED","ARCHIVED"]}]&` +
         `limit=500&access_token=${token}`
     ),
