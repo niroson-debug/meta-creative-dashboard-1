@@ -73,7 +73,7 @@ export async function fetchCreatives(
   const [adsRes, insightsRes] = await Promise.all([
     fetch(
       `${BASE_URL}/${accountId}/ads?` +
-        `fields=id,name,creative{id,thumbnail_url,image_url,picture,video_id,body,title,call_to_action_type}&` +
+        `fields=id,name,creative{id,thumbnail_url,image_url,video_id,body,title,call_to_action_type}&` +
         `filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED","ARCHIVED"]}]&` +
         `limit=500&access_token=${token}`
     ),
@@ -149,8 +149,8 @@ export async function fetchCreatives(
     creatives.push({
       id: insight.ad_id,
       name: insight.ad_name,
-      thumbnailUrl: creative?.picture || creative?.image_url || creative?.thumbnail_url || null,
-      imageUrl: creative?.image_url || creative?.picture || creative?.thumbnail_url || null,
+      thumbnailUrl: creative?.image_url || creative?.thumbnail_url || null,
+      imageUrl: creative?.image_url || creative?.thumbnail_url || null,
       isVideo,
       adCount: 1,
       spend,
