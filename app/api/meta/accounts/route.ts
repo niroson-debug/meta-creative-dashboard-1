@@ -1,4 +1,4 @@
-import { fetchAdAccounts, TokenExpiredError } from '@/lib/meta'
+import { fetchAdAccounts } from '@/lib/meta'
 
 export async function GET() {
   const token = process.env.META_ACCESS_TOKEN
@@ -9,9 +9,6 @@ export async function GET() {
     const accounts = await fetchAdAccounts(token)
     return Response.json({ accounts })
   } catch (err: any) {
-    if (err instanceof TokenExpiredError) {
-      return Response.json({ error: 'TOKEN_EXPIRED' }, { status: 401 })
-    }
     return Response.json({ error: err.message }, { status: 400 })
   }
 }

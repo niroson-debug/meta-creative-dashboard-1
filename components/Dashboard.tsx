@@ -15,7 +15,6 @@ export default function Dashboard() {
   const [isSyncing, setIsSyncing] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [tokenExpired, setTokenExpired] = useState(false)
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null)
 
   // Filters
@@ -29,7 +28,6 @@ export default function Dashboard() {
     fetch('/api/meta/accounts')
       .then((r) => r.json())
       .then((data) => {
-        if (data.error === 'TOKEN_EXPIRED') { setTokenExpired(true); return }
         if (data.error) throw new Error(data.error)
         setAccounts(data.accounts)
         if (data.accounts.length > 0) setSelectedAccount(data.accounts[0])
@@ -52,7 +50,6 @@ export default function Dashboard() {
       })
       const res = await fetch(`/api/meta/creatives?${params}`)
       const data = await res.json()
-      if (data.error === 'TOKEN_EXPIRED') { setTokenExpired(true); return }
       if (data.error) throw new Error(data.error)
       setCreatives(data.creatives)
       setLastSync(new Date())
@@ -102,21 +99,6 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-
-        {/* Token expired banner */}
-        {tokenExpired && (
-          <div className="flex items-start gap-3 px-6 py-3 text-sm"
-            style={{ background: '#2d1000', borderBottom: '1px solid #7c2d12', color: '#fdba74' }}>
-            <span>⚠️</span>
-            <div>
-              <strong>Meta token expired.</strong> Your dashboard needs a new token to load data.{' '}
-              <strong>To fix permanently:</strong> Go to Meta Business Manager → Settings → Users → System Users →
-              create a System User → Generate Token with <code>ads_read</code> permission →
-              paste the new token in Vercel under Environment Variables → META_ACCESS_TOKEN → Redeploy.
-              System User tokens never expire.
-            </div>
-          </div>
-        )}
 
         {/* Filters */}
         <FiltersBar
