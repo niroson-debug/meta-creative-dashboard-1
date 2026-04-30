@@ -1,6 +1,21 @@
 const API_VERSION = process.env.META_API_VERSION || 'v21.0'
 const BASE_URL = `https://graph.facebook.com/${API_VERSION}`
 
+export class TokenExpiredError extends Error {
+  constructor() {
+    super('TOKEN_EXPIRED')
+    this.name = 'TokenExpiredError'
+  }
+}
+
+function checkError(data: any) {
+  if (!data.error) return
+  if (data.error.code === 190 || data.error.error_subcode === 463 || data.error.error_subcode === 467) {
+    throw new TokenExpiredError()
+  }
+  throw new Error(data.error.message)
+}
+
 export interface AdAccount {
   id: string
   name: string
@@ -44,7 +59,7 @@ export async function fetchAdAccounts(token: string): Promise<AdAccount[]> {
     `${BASE_URL}/me/adaccounts?fields=name,id,account_status,currency&limit=50&access_token=${token}`
   )
   const data = await res.json()
-  if (data.error) throw new Error(data.error.message)
+  checkError(data)
   return (data.data || []).filter((a: AdAccount) => a.account_status === 1)
 }
 
@@ -58,7 +73,7 @@ export async function fetchCreatives(
   const [adsRes, insightsRes] = await Promise.all([
     fetch(
       `${BASE_URL}/${accountId}/ads?` +
-        `fields=id,name,creative{id,thumbnail_url,image_url,video_id,body,title,call_to_action_type}&` +
+        `fields=id,name,creative{id,thumbnail_url,image_url,picture,video_id,body,title,call_to_action_type}&` +
         `filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED","ARCHIVED"]}]&` +
         `limit=500&access_token=${token}`
     ),
@@ -77,8 +92,8 @@ export async function fetchCreatives(
 
   const [adsData, insightsData] = await Promise.all([adsRes.json(), insightsRes.json()])
 
-  if (adsData.error) throw new Error(adsData.error.message)
-  if (insightsData.error) throw new Error(insightsData.error.message)
+  checkError(adsData)
+  checkError(insightsData)
 
   const adsMap = new Map<string, any>()
   for (const ad of adsData.data || []) adsMap.set(ad.id, ad)
@@ -134,8 +149,8 @@ export async function fetchCreatives(
     creatives.push({
       id: insight.ad_id,
       name: insight.ad_name,
-      thumbnailUrl: creative?.thumbnail_url || creative?.image_url || null,
-      imageUrl: creative?.image_url || creative?.thumbnail_url || null,
+      thumbnailUrl: creative?.picture || creative?.image_url || creative?.thumbnail_url || null,
+      imageUrl: creative?.image_url || creative?.picture || creative?.thumbnail_url || null,
       isVideo,
       adCount: 1,
       spend,
