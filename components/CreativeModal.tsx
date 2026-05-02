@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import type { Creative } from '@/lib/meta'
 
@@ -111,13 +111,26 @@ function CopyBlock({ label, value }: { label: string; value: string }) {
 }
 
 export default function CreativeModal({ creative, currency, onClose }: Props) {
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [videoLoading, setVideoLoading] = useState(false)
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const roasColor = creative.roas >= 3 ? '#22c55e' : creative.roas >= 2 ? '#eab308' : creative.roas > 0 ? '#f97316' : '#9ca3af'
+  // Fetch real video URL when modal opens for a video creative
+  useEffect(() => {
+    if (!creative.isVideo || !creative.videoId) return
+    setVideoLoading(true)
+    fetch(`/api/meta/video?videoId=${creative.videoId}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.url) setVideoUrl(d.url) })
+      .catch(() => {})
+      .finally(() => setVideoLoading(false))
+  }, [creative.videoId, creative.isVideo])
+
   const openUrl = creative.imageUrl || creative.thumbnailUrl
 
   return (
@@ -153,14 +166,41 @@ export default function CreativeModal({ creative, currency, onClose }: Props) {
         <div className="flex gap-0" style={{ minHeight: 0 }}>
           {/* Left: image */}
           <div className="w-80 shrink-0 p-5" style={{ borderRight: '1px solid #2d1f50' }}>
+            {/* Video player or image */}
             <div className="relative w-full rounded-xl overflow-hidden mb-3"
-              style={{ aspectRatio: '4/3', background: '#0d0918' }}>
-              {creative.thumbnailUrl ? (
+              style={{ aspectRatio: '9/16', background: '#0d0918', maxHeight: '340px' }}>
+              {creative.isVideo ? (
+                videoLoading ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                    <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+                    <span className="text-xs" style={{ color: '#6b7280' }}>Loading video…</span>
+                  </div>
+                ) : videoUrl ? (
+                  <video
+                    src={videoUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-contain"
+                    style={{ background: '#000' }}
+                  />
+                ) : creative.thumbnailUrl ? (
+                  // Fallback: thumbnail with play overlay linking to Meta
+                  <div className="relative w-full h-full">
+                    <Image src={creative.thumbnailUrl} alt={creative.name} fill className="object-cover" unoptimized />
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                      <span className="text-xs text-white px-3 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                        Video unavailable via API
+                      </span>
+                    </div>
+                  </div>
+                ) : null
+              ) : creative.thumbnailUrl ? (
                 <Image
                   src={creative.thumbnailUrl}
                   alt={creative.name}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   unoptimized
                 />
               ) : (
@@ -170,12 +210,13 @@ export default function CreativeModal({ creative, currency, onClose }: Props) {
               )}
             </div>
 
-            {openUrl && (
+            {/* Open original link (for images or video fallback) */}
+            {openUrl && !videoUrl && (
               <a
                 href={openUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full text-sm font-medium py-2 rounded-lg transition-all"
+                className="flex items-center justify-center gap-2 w-full text-sm font-medium py-2 rounded-lg transition-all mb-1"
                 style={{ background: '#7c3aed', color: '#f5f3ff', textDecoration: 'none' }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

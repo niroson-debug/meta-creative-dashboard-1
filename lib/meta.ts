@@ -8,11 +8,22 @@ export interface AdAccount {
   account_status: number
 }
 
+export const ALLOWED_ACCOUNTS = [
+  'pro marketer',
+  'pili hunters',
+  'eht',
+  'vet treat',
+  'lka vancouver',
+  'lka denver',
+  'lka westfield',
+]
+
 export interface Creative {
   id: string
   name: string
   thumbnailUrl: string | null
   imageUrl: string | null
+  videoId: string | null
   isVideo: boolean
   adCount: number
   spend: number
@@ -45,7 +56,10 @@ export async function fetchAdAccounts(token: string): Promise<AdAccount[]> {
   )
   const data = await res.json()
   if (data.error) throw new Error(data.error.message)
-  return (data.data || []).filter((a: AdAccount) => a.account_status === 1)
+  const all = (data.data || []).filter((a: AdAccount) => a.account_status === 1)
+  return all.filter((a: AdAccount) =>
+    ALLOWED_ACCOUNTS.some((key) => a.name.toLowerCase().includes(key))
+  )
 }
 
 export async function fetchCreatives(
@@ -136,6 +150,7 @@ export async function fetchCreatives(
       name: insight.ad_name,
       thumbnailUrl: creative?.thumbnail_url || creative?.image_url || null,
       imageUrl: creative?.image_url || creative?.thumbnail_url || null,
+      videoId: creative?.video_id || null,
       isVideo,
       adCount: 1,
       spend,
