@@ -10,7 +10,7 @@ export interface AdAccount {
 
 export const ALLOWED_ACCOUNTS = [
   'pro marketer',
-  'pili hunters',
+  'eco protein',
   'eht',
   'vet treat',
   'lka vancouver',

@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import type { AdAccount } from '@/lib/meta'
 
 interface Props {
@@ -38,9 +40,8 @@ export default function Sidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 px-3 pt-4">
-        <NavItem icon={GridIcon} label="Overview" active />
-        <NavItem icon={BarIcon} label="Compare" />
-        <NavItem icon={StarIcon} label="Top Creatives" />
+        <NavLink href="/" icon={GridIcon} label="Creatives" />
+        <NavLink href="/report" icon={BarIcon} label="Performance Report" />
       </nav>
 
       {/* Ad Accounts */}
@@ -101,32 +102,26 @@ export default function Sidebar({
         className="px-5 py-3 text-xs"
         style={{ color: '#6b7280', borderTop: '1px solid #2d1f50' }}
       >
-        Facebook · Meta Ads
+        Meta · Google Ads
       </div>
     </aside>
   )
 }
 
-function NavItem({
-  icon: Icon,
-  label,
-  active,
-}: {
-  icon: React.FC
-  label: string
-  active?: boolean
-}) {
+function NavLink({ href, icon: Icon, label }: { href: string; icon: React.FC; label: string }) {
+  const path = usePathname()
+  const active = path === href
   return (
-    <div
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm cursor-pointer transition-all"
-      style={{
-        background: active ? '#2d1f50' : 'transparent',
-        color: active ? '#a78bfa' : '#6b7280',
-      }}
+    <Link
+      href={href}
+      style={{ textDecoration: 'none' }}
+      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all"
     >
-      <Icon />
-      {label}
-    </div>
+      <span style={{ color: active ? '#a78bfa' : '#6b7280', display: 'flex', alignItems: 'center', gap: '10px', background: active ? '#2d1f50' : 'transparent', padding: '6px 10px', borderRadius: '8px', width: '100%' }}>
+        <Icon />
+        {label}
+      </span>
+    </Link>
   )
 }
 
@@ -147,14 +142,6 @@ function BarIcon() {
       <line x1="18" y1="20" x2="18" y2="10" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  )
-}
-
-function StarIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   )
 }
