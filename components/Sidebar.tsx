@@ -2,21 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { AdAccount } from '@/lib/meta'
+import { useAccounts } from '@/lib/AccountContext'
 
-interface Props {
-  accounts: AdAccount[]
-  selectedAccount: AdAccount | null
-  onSelectAccount: (account: AdAccount) => void
-  isLoadingAccounts: boolean
-}
+export default function Sidebar() {
+  const { accounts, selectedAccount, setSelectedAccount, isLoadingAccounts } = useAccounts()
 
-export default function Sidebar({
-  accounts,
-  selectedAccount,
-  onSelectAccount,
-  isLoadingAccounts,
-}: Props) {
   return (
     <aside
       className="flex flex-col h-full w-64 shrink-0"
@@ -40,7 +30,10 @@ export default function Sidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 px-3 pt-4">
-        <NavLink href="/" icon={GridIcon} label="Creatives" />
+        <NavLink href="/" icon={HomeIcon} label="Home" />
+        <NavLink href="/creatives" icon={GridIcon} label="Creatives" />
+        <NavLink href="/leaderboard" icon={TrophyIcon} label="Leaderboard" />
+        <NavLink href="/trending" icon={TrendIcon} label="Trending" />
         <NavLink href="/report" icon={BarIcon} label="Performance Report" />
       </nav>
 
@@ -74,7 +67,7 @@ export default function Sidebar({
               return (
                 <button
                   key={account.id}
-                  onClick={() => onSelectAccount(account)}
+                  onClick={() => setSelectedAccount(account)}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm transition-all"
                   style={{
                     background: active ? '#2d1f50' : 'transparent',
@@ -112,16 +105,33 @@ function NavLink({ href, icon: Icon, label }: { href: string; icon: React.FC; la
   const path = usePathname()
   const active = path === href
   return (
-    <Link
-      href={href}
-      style={{ textDecoration: 'none' }}
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all"
-    >
-      <span style={{ color: active ? '#a78bfa' : '#6b7280', display: 'flex', alignItems: 'center', gap: '10px', background: active ? '#2d1f50' : 'transparent', padding: '6px 10px', borderRadius: '8px', width: '100%' }}>
+    <Link href={href} style={{ textDecoration: 'none' }} className="block">
+      <span
+        style={{
+          color: active ? '#a78bfa' : '#6b7280',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          background: active ? '#2d1f50' : 'transparent',
+          padding: '6px 10px',
+          borderRadius: '8px',
+          width: '100%',
+          fontSize: '14px',
+        }}
+      >
         <Icon />
         {label}
       </span>
     </Link>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+      <path d="M9 22V12h6v10" />
+    </svg>
   )
 }
 
@@ -142,6 +152,24 @@ function BarIcon() {
       <line x1="18" y1="20" x2="18" y2="10" />
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  )
+}
+
+function TrophyIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z" />
+      <path d="M17 5h3a2 2 0 01-2 4h-1M7 5H4a2 2 0 002 4h1" />
+    </svg>
+  )
+}
+
+function TrendIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
     </svg>
   )
 }

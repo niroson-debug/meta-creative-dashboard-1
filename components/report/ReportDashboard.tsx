@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { AdAccount } from '@/lib/meta'
+import { useState } from 'react'
 import type { MetricsSnapshot } from '@/lib/metricUtils'
 import type { GoogleTotals } from '@/lib/googleCSV'
 import type { Creative } from '@/lib/meta'
-import ReportSidebar from './ReportSidebar'
+import { useAccounts } from '@/lib/AccountContext'
 import MetaPerformance from './MetaPerformance'
 import GooglePerformance from './GooglePerformance'
 import CreativePerformance from './CreativePerformance'
@@ -21,9 +20,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 }
 
 export default function ReportDashboard() {
-  const [accounts, setAccounts] = useState<AdAccount[]>([])
-  const [selectedAccount, setSelectedAccount] = useState<AdAccount | null>(null)
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true)
+  const { selectedAccount } = useAccounts()
 
   // Accumulated data for commentary
   const [metaThis, setMetaThis] = useState<MetricsSnapshot>(emptyMetrics())
@@ -32,33 +29,13 @@ export default function ReportDashboard() {
   const [googlePrev, setGooglePrev] = useState<GoogleTotals | null>(null)
   const [creatives, setCreatives] = useState<Creative[]>([])
 
-  useEffect(() => {
-    setIsLoadingAccounts(true)
-    fetch('/api/meta/accounts')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) return
-        setAccounts(data.accounts)
-        if (data.accounts.length > 0) setSelectedAccount(data.accounts[0])
-      })
-      .catch(() => {})
-      .finally(() => setIsLoadingAccounts(false))
-  }, [])
-
   function handlePrint() {
     window.print()
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
-      <ReportSidebar
-        accounts={accounts}
-        selectedAccount={selectedAccount}
-        onSelectAccount={setSelectedAccount}
-        isLoadingAccounts={isLoadingAccounts}
-      />
-
-      <div style={{ flex: 1, overflowY: 'auto', background: '#0d0918' }}>
+    <>
+    <div style={{ flex: 1, overflowY: 'auto', background: '#0d0918' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 28px', borderBottom: '1px solid #2d1f50', background: '#130c22', position: 'sticky', top: 0, zIndex: 10 }}>
           <div>
@@ -109,13 +86,13 @@ export default function ReportDashboard() {
         </div>
       </div>
 
-      <style>{`
-        @media print {
-          aside { display: none !important; }
-          button { display: none !important; }
-          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-      `}</style>
-    </div>
+    <style>{`
+      @media print {
+        aside { display: none !important; }
+        button { display: none !important; }
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    `}</style>
+    </>
   )
 }

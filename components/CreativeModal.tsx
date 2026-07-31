@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import type { Creative } from '@/lib/meta'
+import BriefPanel from './BriefPanel'
 
 interface Props {
   creative: Creative
   currency: string
+  accountId: string
   onClose: () => void
 }
 
@@ -110,7 +112,7 @@ function CopyBlock({ label, value }: { label: string; value: string }) {
   )
 }
 
-export default function CreativeModal({ creative, currency, onClose }: Props) {
+export default function CreativeModal({ creative, currency, accountId, onClose }: Props) {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [videoLoading, setVideoLoading] = useState(false)
 
@@ -124,12 +126,12 @@ export default function CreativeModal({ creative, currency, onClose }: Props) {
   useEffect(() => {
     if (!creative.isVideo || !creative.videoId) return
     setVideoLoading(true)
-    fetch(`/api/meta/video?videoId=${creative.videoId}`)
+    fetch(`/api/meta/video?videoId=${creative.videoId}&accountId=${accountId}`)
       .then((r) => r.json())
       .then((d) => { if (d.url) setVideoUrl(d.url) })
       .catch(() => {})
       .finally(() => setVideoLoading(false))
-  }, [creative.videoId, creative.isVideo])
+  }, [creative.videoId, creative.isVideo, accountId])
 
   const openUrl = creative.imageUrl || creative.thumbnailUrl
 
@@ -291,6 +293,11 @@ export default function CreativeModal({ creative, currency, onClose }: Props) {
                 <RetentionChart data={creative.videoRetention} />
               </div>
             )}
+
+            {/* AI creative brief */}
+            <div className="rounded-xl p-4" style={{ background: '#1a1230', border: '1px solid #2d1f50' }}>
+              <BriefPanel creative={creative} />
+            </div>
           </div>
         </div>
       </div>

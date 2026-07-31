@@ -1,17 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { AdAccount, Creative } from '@/lib/meta'
-import Sidebar from './Sidebar'
+import type { Creative } from '@/lib/meta'
+import { useAccounts } from '@/lib/AccountContext'
 import FiltersBar from './FiltersBar'
 import CreativeCard from './CreativeCard'
 import CreativeModal from './CreativeModal'
 
 export default function Dashboard() {
-  const [accounts, setAccounts] = useState<AdAccount[]>([])
-  const [selectedAccount, setSelectedAccount] = useState<AdAccount | null>(null)
+  const { selectedAccount } = useAccounts()
   const [creatives, setCreatives] = useState<Creative[]>([])
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true)
   const [isSyncing, setIsSyncing] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -21,20 +19,6 @@ export default function Dashboard() {
   const [datePreset, setDatePreset] = useState('last_14d')
   const [format, setFormat] = useState('all')
   const [minSpend, setMinSpend] = useState(0)
-
-  // Load accounts on mount
-  useEffect(() => {
-    setIsLoadingAccounts(true)
-    fetch('/api/meta/accounts')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error)
-        setAccounts(data.accounts)
-        if (data.accounts.length > 0) setSelectedAccount(data.accounts[0])
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setIsLoadingAccounts(false))
-  }, [])
 
   // Fetch creatives when account or filters change
   const fetchCreatives = useCallback(async () => {
@@ -67,77 +51,69 @@ export default function Dashboard() {
   const currency = selectedAccount?.currency || 'USD'
 
   return (
-    <div className="flex h-full overflow-hidden">
-      <Sidebar
-        accounts={accounts}
-        selectedAccount={selectedAccount}
-        onSelectAccount={setSelectedAccount}
-        isLoadingAccounts={isLoadingAccounts}
-      />
-
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Top bar */}
-        <div
-          className="flex items-center justify-between px-6 py-3"
-          style={{ borderBottom: '1px solid #2d1f50', background: '#130c22' }}
-        >
-          <div>
-            <h1 className="text-base font-semibold" style={{ color: '#f5f3ff' }}>
-              {selectedAccount?.name ?? 'Creative Analytics'}
-            </h1>
-            <p className="text-xs" style={{ color: '#6b7280' }}>
-              {creatives.length} creatives
-            </p>
-          </div>
-
-          {error && (
-            <div
-              className="text-xs px-3 py-1.5 rounded-lg"
-              style={{ background: '#2d0f0f', color: '#f87171', border: '1px solid #7f1d1d' }}
-            >
-              {error}
-            </div>
-          )}
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Top bar */}
+      <div
+        className="flex items-center justify-between px-6 py-3"
+        style={{ borderBottom: '1px solid #2d1f50', background: '#130c22' }}
+      >
+        <div>
+          <h1 className="text-base font-semibold" style={{ color: '#f5f3ff' }}>
+            {selectedAccount?.name ?? 'Creative Analytics'}
+          </h1>
+          <p className="text-xs" style={{ color: '#6b7280' }}>
+            {creatives.length} creatives
+          </p>
         </div>
 
-        {/* Filters */}
-        <FiltersBar
-          datePreset={datePreset}
-          setDatePreset={setDatePreset}
-          format={format}
-          setFormat={setFormat}
-          minSpend={minSpend}
-          setMinSpend={setMinSpend}
-          onSync={fetchCreatives}
-          isSyncing={isSyncing}
-          lastSync={lastSync}
-        />
-
-        {/* Creative grid */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {isSyncing && creatives.length === 0 ? (
-            <LoadingSkeleton />
-          ) : creatives.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
-              {creatives.map((creative) => (
-                <CreativeCard
-                  key={creative.id}
-                  creative={creative}
-                  currency={currency}
-                  onClick={() => setSelectedCreative(creative)}
-                />
-              ))}
-            </div>
-          )}
-        </main>
+        {error && (
+          <div
+            className="text-xs px-3 py-1.5 rounded-lg"
+            style={{ background: '#2d0f0f', color: '#f87171', border: '1px solid #7f1d1d' }}
+          >
+            {error}
+          </div>
+        )}
       </div>
+
+      {/* Filters */}
+      <FiltersBar
+        datePreset={datePreset}
+        setDatePreset={setDatePreset}
+        format={format}
+        setFormat={setFormat}
+        minSpend={minSpend}
+        setMinSpend={setMinSpend}
+        onSync={fetchCreatives}
+        isSyncing={isSyncing}
+        lastSync={lastSync}
+      />
+
+      {/* Creative grid */}
+      <main className="flex-1 overflow-y-auto p-6">
+        {isSyncing && creatives.length === 0 ? (
+          <LoadingSkeleton />
+        ) : creatives.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+            {creatives.map((creative) => (
+              <CreativeCard
+                key={creative.id}
+                creative={creative}
+                currency={currency}
+                onClick={() => setSelectedCreative(creative)}
+              />
+            ))}
+          </div>
+        )}
+      </main>
 
       {selectedCreative && (
         <CreativeModal
           creative={selectedCreative}
           currency={currency}
+          accountId={selectedAccount?.id || ''}
           onClose={() => setSelectedCreative(null)}
         />
       )}
